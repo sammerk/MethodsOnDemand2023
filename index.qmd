@@ -1,0 +1,814 @@
+---
+title: "Methods On Demand 2023"
+author: "Samuel Merk"
+lang: de
+format: 
+  html:
+    self-contained: true
+    toc: true
+theme:
+  light: flatly
+  dark: darkly
+editor_options: 
+  chunk_output_type: console
+bibliography: references.bib
+csl: apa.csl
+---
+```{r}
+#| label: setup-chunk
+#| echo: false
+#| results: hide
+#| warning: false
+#| message: false
+library(tidyverse)
+library(bayestestR)
+library(faux)
+library(hrbrthemes)
+library(haven)
+library(plotly)
+library(modelsummary)
+library(lavaan)
+```
+
+
+## Herzlich Willkommen!
+::: {.callout-note}
+## Wer bin ich?
+* Samuel Merk
+* Professor für empirische Schul- und Unterrichtsforschung
+* Interessiert an evidenzinformierter Schul- und Unterrichtsentwicklung
+* Open Science Enthusiast
+:::
+
+::: {.callout-note}
+## Wer seid ihr?
+* Inhaltliche Interessen
+* Stand der Promotion
+* Vorerfahrung Statistik
+    * Workshops
+    * Modelle (t-Test, ANOVA, ...)
+    * Software
+* An was würdet ihr gerne arbeiten?    
+:::
+
+## Masterplan
+* Grundbegriffe
+* Korrelation
+* Regression
+    * Einfache lineare Regression (LM)
+    * Multiple lineare Regression
+* Generalized Linear Models (GLM)
+    * Logistische Regression
+    * Poisson Regression
+* Konfirmatorische Faktorenanalyse (CFA)
+    * Latente Variablen
+    * Messmodelle
+    * Model-Fit Evaluation
+* Strukturgleichungsmodellierung (SEM)
+    * Motivation
+    * Grundlegende Vorgehensweise
+
+## Zum Modus des Workshops
+::: {.callout-important icon=false}
+## {{< bi heartbreak color=#e74c3c >}} Was können wir (nicht) vom Workshop erwarten?
+Typischerweise erwartet »man« zu viel von einem Workshop wie diesem. Niemand wird nach 1,5 Tagen SEM beherrschen.  
+Jedoch müssen alle irgendwo & irgendwie anfangen. Der Workshop soll für viele die Gelegenheit bieten Anstoß für eigene Elaborationen zu finden.
+:::
+
+::: {.callout-tip icon=false}
+## {{< bi lightbulb color=#20c997 >}} Wie maximiere ich meinen Lernerfolg?
+M.E. am besten mit möglichst aktiver Elaboration. Wenn man gerade unterfordert ist, erklärt man den Inhalt seiner Kollegin und wenn man gerade überfordert ist bittet man die Kollegin um eine Erklärung.
+:::
+
+## Block I: Grundbegriffe
+::: {.callout-warning icon=false}
+## {{< bi question-circle color=#e74c3c >}} Kontrastiert und vergleicht die folgenden Begriffsets und eleboriert mit euren Partnern Beispiele aus eurer eigenen Forschung 
+
+* Explorative Studie, explanative Studie, deskriptive Studie und prädiktive Studie
+* Externe Validität, interne Validität, Konstruktvalidität
+* Experiment, Quasi-Experiemnt, Nicht-Experiment
+* Inferenzstatistik, Deskriptivstatistik, Effektstärken
+* Signifikanz, p-Werte, $\alpha$-Niveau
+:::
+
+::: {.callout-tip icon=false collapse=true}
+## {{< bi lightbulb color=#20c997 >}} Lösungshilfen
+> **Exporative Studien** zielen darauf ab neue Hypothesen/Forschungsfragen zu generieren, während **explanative Studien** deren Konfrimation oder Falsifikation zum Ziel haben. **Deskriptive Studien** wollen die Ausprägung von Größen in bestimmten Populationen beschrieben. **Prädiktive Studien** wollen Daten vorhersagen ohne am Wahrheitsgehalt der dazu verwendeten Modelle interessiert zu sein.
+
+> Die **externe Validität** beschreibt, inwiefern die Schlussfoglerung einer Studie über ihre Stichprobe, Materialien etc. hinaus verallgemeinerbar ist. Die **interne Validität** bringt das Ausmaß der interpretierbarkeit eines Studienergebnisses als kausale Relation von unabhängiger und abhängiger Variable zum Ausdruck. Die **Konstruktvalidität** ist ein Qualitätsmerkmal von Messungen und beschreibt inwiefern Evidenz für die Angemessenheit der Interpretation eines Messwertes vorliegt.
+
+> **Experimente** teilen Merkmalsträger zufallsbasiert in Gruppen ein, die unterschiedlichen Treatments unterzogen werden. Bei **Quasiexperimenten** liegt diese Gruppeneinteilung nicht in der Hand der Forschenden. **Nicht-Experimente** untersuchen nicht die Effekte von Treatments.
+
+> **Inferenzstatistik** macht Aussagen über den stochastischen Prozess der ein vorliegenden Datensatz generiert. Typischerweise werden dabei Hypothesen getestet oder die Unsicherheit einer Parameterschätzung quantifiziert. **Deskriptivstatistik** macht Aussagen über einen Datensatz. **Effektstärken** (z.B. Cohen's *d*) können Deskriptivstatistiken sein. Konfidenz- oder Credibilityintervalle von Effektstsärken stellen allerdings Infernezstatistiken dar.
+
+> **p-Werte** quantifizieren die Wahrscheinlichkeit vorliegende (oder extremer gegen die Nullhypothese sprechende Daten) zu erhalten unter der Annahme, dass die Nullhypothese wahr ist. Fällt diese Wahrscheinlicheit und eine a priori festegelegte Irrtumswahrscheinlichkeit **$\alpha$** spricht man von Signifikanz.
+:::
+
+## Block II: Korrelation
+### Warm-Up Aufgaben
+
+::: {.callout-warning icon=false}
+## {{< bi question-circle color=#e74c3c >}} Interpretationsaufgaben
+
+```{r}
+#| echo: false
+#| results: hide
+#| label: data prep corr
+#| message: false
+#| cache: true
+
+set.seed(9)
+uv <- round(distribution_normal(500, 150, 50), 0)
+av <- rnorm_pre(uv, 60, 20, .878)
+
+data_lesen <- 
+  tibble(`Förderungsdauer [h]` = uv,
+         Dauer = uv,
+         `Zuwachs in Lesetest [Punkte]` = av,
+         Lesetest = av)
+cor(data_lesen$`Förderungsdauer [h]`, data_lesen$`Zuwachs in Lesetest [Punkte]`)
+write_sav(data_lesen |> select(Dauer, Lesetest), 
+          "data/data_corr_lesen.sav")
+
+data_schoko <- 
+  read_csv("https://fabiandablander.com/assets/data/nobel-chocolate.csv") |> 
+    mutate(`Schokoladenkonsum pro Einwohner pro Jahr in kg` = Chocolate,
+           `Nobelpreise pro 10 Millionen Einwohner*innen` = Laureates10_million)
+cor(data_schoko$Chocolate, data_schoko$Laureates10_million)
+write_sav(data_schoko |> select(Chocolate, Laureates10_million), 
+          "data/data_corr_schoko.sav")
+```
+
+
+Angenommen `r xfun::embed_file("data/data_corr_lesen.sav", "data_corr_lesen.sav", "die folgenden Daten")` stellen das Ergebnis eines Lesetests dar, in Abhängigkeit des Umfangs einer Leseförderung, die randomisiert unterschiedlich lange ausgebracht wurde. Was sagen diese Daten aus?
+```{r}
+#| echo: false
+#| label: intervention lesförderung
+#| fig-width: 4.5
+#| fig-height: 4.5
+#| out-width: 33%
+#| cache: true
+#| message: false
+#| fig-align: left
+
+
+plot <- 
+  ggplot(
+  data_lesen,
+  aes(`Förderungsdauer [h]`, `Zuwachs in Lesetest [Punkte]`)
+) +
+  geom_point(shape = 1, color = "#8cd000") +
+  geom_rug(color = "#8cd000",
+           alpha = .4) +
+  theme_modern_rc() +
+  labs(
+    title = "Assoziation", 
+    subtitle = "von Förderungsdauer & -erfolg") +
+    stat_smooth(method = "lm", 
+                se = F, 
+                color = "#8cd000")
+plot
+```
+
+
+`r xfun::embed_file("data/data_corr_schoko.sav", "data_corr_schoko.sav", "Die nächsten Daten")` beschreiben die Anzahl der Nobelpreise und die durschnittliche Menge gegessener Schokolade in einer Reihe von Ländern. Was sagen diese Daten aus?
+
+```{r}
+#| echo: false
+#| label: schokoladenplot
+#| fig-width: 4.5
+#| fig-height: 4.5
+#| out-width: 33%
+#| fig-align: left
+#| cache: true
+#| message: false
+
+
+ggplot(
+  data_schoko,
+  aes(`Schokoladenkonsum pro Einwohner pro Jahr in kg`,
+      `Nobelpreise pro 10 Millionen Einwohner*innen`)) +
+  geom_point(shape = 1, color = "#8cd000") +
+  geom_rug(color = "#8cd000",
+           alpha = .4) +
+  theme_modern_rc() +
+  labs(
+    title = "Assoziation", 
+    subtitle = "von Schokoladenkonsum & Anzahl Nobelpreisen") +
+    stat_smooth(method = "lm", 
+                se = F, 
+                color = "#8cd000")
+```
+
+:::
+
+::: {.callout-warning icon=false}
+## {{< bi question-circle color=#e74c3c >}} Datenaufgabe
+* Berechnet die Korrelationen und 
+* testet diese auf die Nullhypothese $H_0: \; r = 0$ mit einem p-Wert oder Bayes Factor
+:::
+
+### Definitionen
+Die Pearson Definition ist wie folgt definiert:
+
+$$r_{x, y}=\frac{\sum_{i=1}^n\left(x_i-\bar{x}\right)\left(y_i-\bar{y}\right)}{\sqrt{\sum_{i=1}^n\left(x_i-\bar{x}\right)^2 \sum_{i=1}^n\left(y_i-\bar{y}\right)^2}} = \frac{Cov(x,y)}{s_x \cdot s_y} = Cov(x,y) \cdot \frac{1}{s_x} \cdot \frac{1}{s_y}$$
+
+In der folgenden dynamischen Visualisierung kann man sehen, dass die Kovarianz der »gerichteten Fläche« entspricht:
+
+<iframe scrolling="no"
+src="https://www.geogebra.org/material/iframe/id/xj3vvgvp/szb/true/smb/false/sfsb/true/sri/true"
+width="523px"
+height="540px"
+style="border:0px;" allowfullscreen>
+</iframe>
+
+Da die Kovarianz aber von der Maßeinheit der Größen abhängt wird diese durch die Standardabweichung beider Größen geteilt.
+
+:::: {.columns}
+
+::: {.column width='50%'}
+```{r}
+#| fig-width: 6.5
+#| fig-height: 4.5
+#| out-width: 100%
+#| fig-align: center
+#| cache: true
+#| echo: false
+#| message: false
+#| warning: false
+
+plot +
+  # Errorbarmargin UV
+  geom_segment(aes(x = mean(uv) - sd(uv), 
+                   xend = mean(uv) + sd(uv),
+                   y = min(av) - 6,
+                   yend = min(av) - 6),
+               color = "#d77d00") + 
+  geom_point(data =tibble(`Förderungsdauer [h]` = mean(uv),
+                          `Zuwachs in Lesetest [Punkte]` = min(av) - 6),
+             aes(`Förderungsdauer [h]`, `Zuwachs in Lesetest [Punkte]`),
+             color = "#d77d00") +
+#  annotate("text", x = mean(uv), 
+#           y = min(av) -.5, 
+#           label = "MW ± 1*SD",
+#           color = "#d77d00",
+#           size = 3) +
+  # Errorbarmargin aV
+  geom_segment(aes(y = mean(av) - sd(av), 
+                   yend = mean(av) + sd(av),
+                   x = min(uv) - 4,
+                   xend = min(uv) - 4),
+               color = "#d77d00") +
+  geom_point(data = tibble(`Förderungsdauer [h]` = min(uv) - 4,
+                           `Zuwachs in Lesetest [Punkte]` = mean(av)),
+           aes(`Förderungsdauer [h]`, `Zuwachs in Lesetest [Punkte]`),
+           color = "#d77d00") +
+ # annotate("text", x = min(uv), 
+ #          y = mean(av), 
+ #          label = "MW ± 1*SD",
+ #          color = "#d77d00",
+ #          size = 2.5,
+ #          angle = -90) +
+  # Steigungsdreieck
+  geom_segment(aes(y = mean(av), 
+                   yend = mean(av),
+                   x = mean(uv),
+                   xend = mean(uv) + sd(uv)),
+               color = "#d77d00") +
+  geom_segment(aes(y = mean(av), 
+                 yend = mean(av) + cor(av, uv)*sd(av),
+                 x = mean(uv) + sd(uv),
+                 xend = mean(uv) + sd(uv)),
+             color = "#d77d00") +
+  # Hilfslinien
+  geom_segment(aes(x = mean(uv),
+                   xend = mean(uv)),
+                   y = min(av) - 6, 
+                   yend = mean(av),
+               color = "#d77d00",
+               alpha = .1,
+               linetype = 3) +
+  geom_segment(aes(x = mean(uv) + sd(uv),
+                   xend = mean(uv) + sd(uv),
+                   y = min(av) - 6, 
+                   yend = mean(av)),
+               color = "#d77d00",
+               alpha = .1,
+               linetype = 3) +
+    geom_segment(aes(x = min(uv) - 3,
+                   xend = mean(uv),
+                   y = mean(av), 
+                   yend = mean(av)),
+               color = "#d77d00",
+               alpha = .1,
+               linetype = 3) +
+     geom_segment(aes(x = min(uv) - 3,
+                   xend = mean(uv) + sd(uv),
+                   y = mean(av) + cor(av, uv)*sd(av), 
+                   yend = mean(av) + cor(av, uv)*sd(av)),
+               color = "#d77d00",
+               alpha = .1,
+               linetype = 3) +
+  stat_smooth(method = "lm", 
+              se = F, 
+              color = "#8cd000")
+```
+
+:::
+
+::: {.column width='50%'}
+```{r}
+#| fig-width: 3.5
+#| fig-height: 4.5
+#| out-width: 52%
+#| fig-align: center
+#| echo: false
+#| message: false
+#| warning: false
+#| cache: true
+
+plot +
+  # Errorbarmargin UV
+  geom_segment(aes(x = mean(uv) - sd(uv), 
+                   xend = mean(uv) + sd(uv),
+                   y = min(av) - 6,
+                   yend = min(av) - 6),
+               color = "#d77d00") + 
+  geom_point(data =tibble(`Förderungsdauer [h]` = mean(uv),
+                          `Zuwachs in Lesetest [Punkte]` = min(av) - 6),
+             aes(`Förderungsdauer [h]`, `Zuwachs in Lesetest [Punkte]`),
+             color = "#d77d00") +
+ # annotate("text", x = mean(uv), 
+ #          y = min(av) -.5, 
+ #          label = "MW ± 1*SD",
+ #          color = "#d77d00",
+ #          size = 3) +
+  # Errorbarmargin aV
+  geom_segment(aes(y = mean(av) - sd(av), 
+                   yend = mean(av) + sd(av),
+                   x = min(uv) - 4,
+                   xend = min(uv) - 4),
+               color = "#d77d00") +
+  geom_point(data = tibble(`Förderungsdauer [h]` = min(uv) - 4,
+                           `Zuwachs in Lesetest [Punkte]` = mean(av)),
+           aes(`Förderungsdauer [h]`, `Zuwachs in Lesetest [Punkte]`),
+           color = "#d77d00") +
+ # annotate("text", x = min(uv), 
+ #          y = mean(av), 
+ #          label = "MW ± 1*SD",
+ #          color = "#d77d00",
+ #          size = 2.5,
+ #          angle = -90) +
+  # Steigungsdreieck
+  geom_segment(aes(y = mean(av), 
+                   yend = mean(av),
+                   x = mean(uv),
+                   xend = mean(uv) + sd(uv)),
+               color = "#d77d00") +
+  geom_segment(aes(y = mean(av), 
+                 yend = mean(av) + cor(av, uv)*sd(av),
+                 x = mean(uv) + sd(uv),
+                 xend = mean(uv) + sd(uv)),
+             color = "#d77d00") +
+  # Hilfslinien
+  geom_segment(aes(x = mean(uv),
+                   xend = mean(uv)),
+                   y = min(av) - 6, 
+                   yend = mean(av),
+               color = "#d77d00",
+               alpha = .1,
+               linetype = 3) +
+  geom_segment(aes(x = mean(uv) + sd(uv),
+                   xend = mean(uv) + sd(uv),
+                   y = min(av) - 6, 
+                   yend = mean(av)),
+               color = "#d77d00",
+               alpha = .1,
+               linetype = 3) +
+    geom_segment(aes(x = min(uv) - 3,
+                   xend = mean(uv),
+                   y = mean(av), 
+                   yend = mean(av)),
+               color = "#d77d00",
+               alpha = .1,
+               linetype = 3) +
+     geom_segment(aes(x = min(uv) - 3,
+                   xend = mean(uv) + sd(uv),
+                   y = mean(av) + cor(av, uv)*sd(av), 
+                   yend = mean(av) + cor(av, uv)*sd(av)),
+               color = "#d77d00",
+               alpha = .1,
+               linetype = 3) +
+  stat_smooth(method = "lm", 
+              se = F, 
+              color = "#8cd000")
+```
+
+:::
+
+::::
+
+
+
+#### Eigenschaften Pearson's $r$  {.center}
+::: {.incremental}
+* Pearson's $r$  beschreibt die Stärke der (negativen oder positiven) Assoziation zweier bivariat normalverteilten Variablen
+* Pearson's $r$  nimmt Werte zwischen -1 und 1 an $(-1 \leq r \leq 1)$. -1 impliziert die maximale negative Assoziation, 0 keine Assoziation und 1 die maximale positive Assoziation
+* Nach Cohen [-@cohen1988], gilt $r =.1$ (bzw. $r = -.1$) als kleiner Effekt, $r =.3$ (bzw. $r = -.3$) als moderater und $r =.5$ (bzw. $r = -.5$) als starker Effekt
+:::
+
+#### Visual Guessing Pearson's $r$ {.center}
+Meiner Erfahrung nach ist es höchst sinnvoll Effektstärken in Grafiken überstezen zu können und umgekehrt. Um dies zu lernen kann die folgende handgestrickte App dienen.
+```{r}
+#| echo: false
+knitr::include_url("https://sammerk.shinyapps.io/Visual_Guessing_r/", 
+                   height = "850px")
+```
+
+
+## Block III: Regression
+### Einfache lineare Regression
+#### Bsp: Lernstunden vs. Lernerfolg
+```{r}
+#| echo: false
+#| message: false
+#| cache: true
+
+klausur_data <- tibble(Vorbereitungsaufwand = c(18,26,46,42,20,26,38,34,40,30,24,14,44,10,28,28,36,16,50,24,36,32,34,22,32),
+                       Punkte = c(21,22,37,30,19,25,32,32,30,22,26,19,29,13,27,21,25,16,33,17,28,23,26,23,29))                
+
+  ggplot(klausur_data, aes(x = Vorbereitungsaufwand, y = Punkte)) + 
+    geom_point(color = "#8cd000") + 
+    stat_smooth(method = "lm", se = F, color = "#8cd000") +
+    labs(title = "Vorbereitungsaufwand & Klausurpunkte", subtitle = "Daten aus Eid, Gollwitzer und Schmitt (2015)") + 
+    theme_modern_rc()
+
+```
+
+#### Parametrisierung
+* Darstellung als Formel (Term)
+     * Typische Schreibweise: $y_i = b_0 + b_1 \cdot x_i + \epsilon_i$
+     * Generalisierte Schreibweise: $y_i \sim \mathcal{N}(\mu,\,\sigma^{2})$ mit $\mu = b_0 + b_1 \cdot x_i$
+     * Datenbeispiel: $\text{Punkte}_i = 10 + 0,5 \cdot \text{Vorbereitungsaufwand}_i + \epsilon_i$
+* Darstellung als Pfadmodell  
+```{r, echo = F, out.width="60%"}
+knitr::include_graphics("img/Reg_Pfad_tikz.png")
+```
+
+
+#### Parameterschätzung
+```{r}
+#| echo: false
+#| cache: true
+knitr::include_url("https://www.geogebra.org/material/iframe/id/wDpDdS7g/width/1600/height/715/border/888888/rc/false/ai/false/sdz/false/smb/false/stb/false/stbh/true/ld/false/sri/false")
+```
+
+
+#### Effektstärke $\beta_1$
+<iframe scrolling="no"
+src="https://www.geogebra.org/material/iframe/id/mR3kx7Fm/width/3000/height/1500/rc/false" width=1200px" height="450px" style="border:0px;" allowfullscreen>
+</iframe>
+
+
+#### Effektstärke $R^2$
+<iframe scrolling="no"
+src="https://www.geogebra.org/material/iframe/id/zwhdveyz/width/2200/height/900/" width="1200px" height="450px" style="border:0px;" allowfullscreen>
+</iframe>
+
+
+::: {.callout-warning icon=false}
+## {{< bi question-circle color=#e74c3c >}} Übung: Einfache lineare Regression
+`r xfun::embed_file("data/klausur_data_m.sav", "klausur_data_m.sav", text = "Diese Datei ")` enthält die Klausurdaten aus dem Beispiel oben. 
+
+**Basisaufgabe:**
+
+* Bestimmt die standardisierten und unstandardisierten Regressionskoeffizienten sowie $R^2$ und interpretiert sie.
+
+**Vertiefungsaufgaben**
+
+* Schätzt die Parameter in einem bayesianischen Framework mit `{brms}` und vergleicht Konfidenz mit Credibilityintervallen
+* Berechnet einen Bayes Factor  via `BayesFactor` der das Modell mit Prädiktor mit einem Modell ohne Prädiktor vergleicht
+
+:::
+
+
+### Multiple Regression
+* Typische Schreibweise: * $y_i = b_0 + b_1 \cdot x_{1i} + b_2 \cdot x_{2i} + \dots + b_j \cdot x_{ji} + \epsilon_i$
+* Generalisierte Schreibweise: $y_i \sim \mathcal{N}(\mu,\,\sigma^{2})$ mit $\mu = b_0 + b_1 \cdot x_{1i} + b_2 \cdot x_{2i} + \dots + b_j \cdot x_{ji}$
+* Datenbeispiel: $\text{Punkte}_i = -0,13 + 0,52 \cdot \text{Vorbereitungsaufwand}_i + 0,38 \cdot \text{Pruefungsangst}_i + \epsilon_i$
+* Darstellung als Pfadmodell  
+```{r, echo = F, out.width="60%", cache=TRUE}
+knitr::include_graphics("img/mult_Reg_Pfad_tikz.png")
+```
+    
+* Geometrische Darstellung
+
+```{r, echo = F, fig.height=4, message=F, out.height= "500px", warning=FALSE, eval=FALSE, cache=TRUE}
+library(tidyverse)
+library(plotly)
+
+klausur_data_m <- tibble(Vorbereitungsaufwand = c(34,29,20,35,45,29,46,49,21,36,42,23,12,28,33,25,47,
+                                                17,31,31,21,24,22,26,40,37,33,12,22,31,28,15,28,27,
+                                                25,13,25,28,11,50,31,40,11,11,38,39,50,22,37,11),
+                       Pruefungsangst = c(4,4,5,10,7,6,6,3,1,9,7,7,6,1,1,3,6,3,9,2,8,3,2,6,9,8,8,1,1,
+                                       3,4,4,9,2,9,5,3,8,9,1,1,1,10,9,4,4,8,1,10,8),
+                       Punkte = c(23,10,11,19,25,16,24,29,20,21,31,20,11,12,13,13,24,7,19,4,8,16,
+                                  11,8,26,21,27,7,15,14,22,10,19,14,17,16,15,16,11,30,12,20,8,8,
+                                  24,21,31,12,19,5))               
+
+library(reshape2)
+lm_mod <- lm(Punkte ~ Vorbereitungsaufwand + Pruefungsangst,data =klausur_data_m)
+
+#Graph Resolution (more important for more complex shapes)
+graph_reso <- 0.05
+
+#Setup Axis
+axis_x <- seq(min(klausur_data_m$Vorbereitungsaufwand), max(klausur_data_m$Vorbereitungsaufwand), by = graph_reso)
+axis_y <- seq(min(klausur_data_m$Pruefungsangst), max(klausur_data_m$Pruefungsangst), by = graph_reso)
+
+#Sample points
+Regressionsebene <- expand.grid(Vorbereitungsaufwand = axis_x,Pruefungsangst = axis_y,KEEP.OUT.ATTRS = F)
+Regressionsebene$Punkte <- predict.lm(lm_mod, newdata = Regressionsebene)
+Regressionsebene <- acast(Regressionsebene, Pruefungsangst ~ Vorbereitungsaufwand, value.var = "Punkte") #y ~ x
+
+klausur_plotly <- 
+  plot_ly(klausur_data_m
+       )%>%
+  add_trace( x = ~Vorbereitungsaufwand, 
+        y = ~Pruefungsangst, 
+        z = ~Punkte,
+        type = "scatter3d", 
+        mode = "markers",
+        marker = list(size = 2, color = "#37414b", symbol = 104))%>%
+  add_surface(z = ~Regressionsebene,
+              x = ~axis_x,
+              y = ~axis_y,
+              opacity = 0.8,
+              colorscale = list("#a51e41"),
+              contours = list(x = list(highlight = F),
+                              y = list(highlight = F),
+                              z = list(highlight = F)))%>%
+  #add_trace(x = c(5,10), y = c(5,10), z = c(5,10), type = "scatter3d",  mode="lines",
+  #          line = list(color = "#a51e41", width = 4))%>%
+ layout(scene = list(xaxis = list(spikesides = T, showspikes = T),
+                     yaxis = list(spikesides = T, showspikes = T),
+                     zaxis = list(spikesides = T, showspikes = T)),
+        showlegend = F)
+
+htmlwidgets::saveWidget(klausur_plotly, "img/klausur_plotly/klausur_plotly.html")
+
+```
+
+<iframe src="img/klausur_plotly/klausur_plotly.html" width="700" height="400px" data-external="1"></iframe>
+
+::: {.callout-warning icon=false}
+## {{< bi question-circle color=#e74c3c >}} Aufgabe
+**Basisaufgabe**
+
+* Bestimmt die standardisierten und unstandardisierten Regressionskoeffizienten 
+ und interpretiert sie ebenso wie deren p-Werte.
+ 
+**Vertiefungsaufgabe**
+
+* Was sagen die Ergebnisse über die kausale Relation der Variablen aus?
+:::
+
+::: {.callout-tip icon=false collapse=true}
+## {{< bi lightbulb color=#20c997 >}} Lösung
+
+```{r}
+#| cache: true
+data_kl <- read_sav("data/klausur_data_m.sav")
+
+lm_kl01 <- lm(Punkte ~ Vorbereitungsaufwand , 
+              data = data_kl)
+summary(lm_kl01)
+
+lm_kl02 <- lm(Punkte ~ Vorbereitungsaufwand + Pruefungsangst, 
+              data = data_kl)
+summary(lm_kl02)
+```
+:::
+
+
+## Block IV: Generalized Linear Models
+Ein verallgemeinertes lineares Modell umfasst typischerweise
+
+1) einen Datenvektor $y = (y_1, . . . , y_n)$
+2) Prädiktoren $\mathbf{X}$ und Koeffizienten $\beta$, die einen linearen Prädiktor $\mathbf{X}{\beta}$ bilden
+3) Eine Verknüpfungsfunktion $g$, die einen Vektor von transformierten Daten $\hat{y}=g^{-1}(\mathbf(X) \beta)$ ergibt, die zur Modellierung der Daten verwendet werden 
+4) Eine Datenverteilung, $P(y)$ 
+5) Möglicherweise andere Parameter, wie Varianzen, »Überstreuungen« und Grenzwerte, die in die Prädiktoren, die Verknüpfungsfunktion und die Datenverteilung eingehen.
+
+### Beispiel logistische Regression
+Mit der logistischen Regression werden Binäre Daten (nominale Variablen mit zwei Ausprägungen) anhand von metrischen oder dummykodierten Variablen prädiziert. Dabei gilt:
+
+\begin{aligned}
+y_i & \sim \operatorname{Bernoulli(p_i)} \\
+\operatorname{logit}\left(p_i\right) & =X_i \beta
+\end{aligned}
+
+mit $\operatorname{logit}(x)=\log (x /(1-x))$.
+
+```{r}
+#| cache: true
+data_poll_repub <- 
+  read_dta("data/polls.dta")
+
+mod_poll01 <- 
+  glm(bush ~ age, 
+      family = binomial(link = "logit"),
+      data = data_poll_repub)
+
+summary(mod_poll01)
+
+mod_poll02 <- 
+  glm(bush ~ black, 
+      family = binomial(link = "logit"),
+      data = data_poll_repub)
+
+summary(mod_poll02)
+```
+
+
+
+## Block IV: Konfirmatorische Faktorenanalyse
+
+> Zunächst herzlichen Dank an Sascha Epskamp für die Möglichkeit Vieles aus [seinen Materialien](http://sachaepskamp.com/SEM2020) zu übernehmen!
+
+Konfirmatorische Faktorenanalyse ist ein zentrales Tool der Psychometrie. Sie stellt *eine* Möglichkeit dar, den Zusammenhang von **latenten Variablen** und ihren Indikatoren formal zu beschreiben.
+
+![Zusammenhang zwischen latenter Variable (Temperatur) und Indikator (Thermometer). Abb. CC-BY Sascha Epskamp.](img/thermo.png){width=10cm fig-align="left"}
+
+
+![Messmodell](img/cfa_1.jpg){width=10cm fig-align="left"}
+
+
+In dieser Schreibweise gilt:
+
+* Kreise: Latente Variablen
+* Rechtecke/Quadrate: Beobachtete Variablen/Measurements/Daten/Indikatoren
+* Unidirektionale Pfeile: **Kausale** Effekte
+* Bidirektionale Pfeile: Kovarianzen
+
+$$
+\begin{aligned}
+y_{i 1} & =\lambda_{11} \eta_{i 1}+\varepsilon_{i 1} \\
+\eta_1 & \sim N\left(0, \sqrt{\psi_{11}}\right) \\
+\varepsilon_1 & \sim N\left(0, \sqrt{\theta_{11}}\right)
+\end{aligned}
+$$
+
+Man nennt $\lambda_{11}$ Faktorladung, $\varepsilon_{i 1}$ Residualvarianz und $\psi_{11}$ Faktorvarianz.
+Obwohl wir die Skala des Faktors nicht kennen können wir dennoch die Varianz des Indikators zur Varianz der Variablen ins Verhältnis setzen:
+
+$$
+\operatorname{Var}\left(y_1\right)=\lambda_{11}^2 \psi_{11}+\theta_{11}
+$$
+
+Schan daraus kann man sinnvolle statistische Größen für die Reliabilität ableiten, z.B. den Anteil der Varianz in der latenten Variable, die durch den Indikator erklärt wird.
+
+$$
+\frac{\lambda_{11}^2 \psi_{11}}{\lambda_{11}^2 \psi_{11}+\theta_{11}}
+$$
+Diese Annahmen *identifizieren* aber die Skala der latenten Variable noch nicht, denn wenn wir $\lambda_{11}$ um $c$ vervielfachen und $\psi_{11}$ duch $c^2$ teilen erhalten wir dieselbe Varianz von $y$. Typischerweise »setzt«/»fixiert«/»restringiert« man entweder $\lambda_{11} = 1$ oder $\psi_{11} = 1$.
+
+> Das zentrale Problem ist nun, dass man Parameter und latente Variablen nicht simultan/gemeinsam schätzen (also aus den Daten ermitteln) kann. Die zentrale Strategie zur Lösung dieses Problems im Rahmen der CFA ist »Kovarianzmodellierung«. Dabei sucht man nach analytischen Zusammenhängen (»Formeln«) die nur die beobachteten Variablen/Daten enthalten und Varianzen/Kovarianzen der latenten Variablen:
+
+![Messmodell mit restringierter Ladung](img/cfa_2.jpg){width=10cm fig-align="left"}
+
+\begin{aligned}
+y_{i 1} & =\eta_{i 1}+\varepsilon_{i 1} \\
+\eta_1 & \sim N\left(0, \sqrt{\psi_{11}}\right) \\
+\varepsilon_1 & \sim N\left(0, \sqrt{\theta_{11}}\right) \\
+\operatorname{Var}\left(y_1\right) & =\psi_{11}+\theta_{11}
+\end{aligned}
+
+In diesem Beisopiel erkennt man ein weiteres Problem: $\operatorname{Var}\left(y_1\right)$ ist nicht »identifiziert« = »es gibt $\infty$ viele Möglichkeiten für $\operatorname{Var}\left(y_1\right)$« = »es liegen negative Freiheitsgrade vor«. Diese sind weie folgt definiert:
+
+$$\operatorname{DF}=a−b$$
+Wobei 
+
+* a die Anzahl der beobachteten Variablen ist, woraus sich $\frac{a(a + 1)}{2}$ Varianzen und Kovarianzen berechnen lassen und
+* b die Anzahl der Parameter ist. die geschätzt werden muss.
+* Typischerweise braucht man 3 Indikatoren für ein Modell mit einer einzigen latenten Variable oder 2 je Faktor/latenter variable mit mehrern korrelierten latenten Variablen
+
+
+### Das allgemeine Rahmenmodell der CFA
+$$
+\begin{aligned}
+\boldsymbol{y}_i & =\boldsymbol{\Lambda} \boldsymbol{\eta}_i+\boldsymbol{\varepsilon}_i \\
+\boldsymbol{y} & \sim N(\mathbf{0}, \boldsymbol{\Sigma}) \\
+\boldsymbol{\eta} & \sim N(\mathbf{0}, \Psi) \\
+\varepsilon & \sim N(\mathbf{0}, \boldsymbol{\Theta})
+\end{aligned}
+$$
+
+Dabei ist 
+
+* $\boldsymbol{y}_i$ ein Vektor der Länge $p$ mit den »Responses«/»beobachteten Variablen«/»Indikatoren«
+* $\boldsymbol{\eta}_i$ ein Vektor der Länge $m$ von latenten Variablen
+* $\varepsilon_i$ ein Vektor der Länge $p$ mit Residuen
+* $\Lambda$ eine Matrix der Größe $p \times m$ mit Faktorladungen
+* $\boldsymbol{\Psi}$ eine symmetrische Matrix der Größe $m \times m$ mit Varianzen und Kovarianzen
+- $\boldsymbol{\theta}$ eine symmetrische Matrix der Größe $p \times p$  mit Varianzen und Kovarianzen der Residuen.
+
+> Die modellimplizierte Varianz-Kovarianz-Matrix ergibt sich dann als
+$$\boldsymbol{\Sigma}=\boldsymbol{\Lambda} \Psi \boldsymbol{\Lambda}^{\top}+\boldsymbol{\theta}$$
+
+### Schätzung von $\boldsymbol{\Sigma}$
+Die beobachtete Varianz-Kovarianz-Matrix ist ein erwartungstreuer Schätzer für $\boldsymbol{\Sigma}. Die dabei typischerweise verwendete Maximum-Likelihood Funktion ist 
+
+$$F_{\mathrm{ML}}=\operatorname{trace}\left(\boldsymbol{S} \boldsymbol{\Sigma}^{-1}\right)-\ln \left|\boldsymbol{S} \boldsymbol{\Sigma}^{-1}\right|-p$$
+
+* Dabei ist 
+    * $\boldsymbol{S}$ die beobachtete Varianz-Kovarianz-Matrix, 
+    * $\operatorname{trace}$ die Spur einer Matrix und 
+    * $\left| ... \right|$ die Determinate einer Matrix.  
+* $F_{\mathrm{ML}}=0$ falls $\boldsymbol{S} = \boldsymbol{\Sigma}$
+* $F_{\mathrm{ML}}$ kann also sowohl zur Schätzung von $\boldsymbol{\Sigma}$ dienen als auch als Maß für die »Devianz«/»Nicht-Passung des Modells«.
+
+Eine anschauliche Einführung in die Grundprinzipien der ML-Schätzung bietet [@magnussonLikelihood].
+
+### Beispiele für das CFA-Framework
+#### One-Leg-Model
+![One-Leg-Model. DF < 0](img/cfa_3.jpg){width=10cm fig-align="left"}
+
+
+#### Two-Leg-Model
+![Two-Leg-Model. DF < 0](img/cfa_4.jpg){width=10cm fig-align="left"}
+
+
+#### Three-Leg-Model
+![Three-Leg-Model. DF = 0](img/cfa_5.jpg){width=10cm fig-align="left"}
+
+
+#### Two-Factor-Model
+![Two-Factor-Model. DF > 0](img/cfa_6.jpg){width=10cm fig-align="left"}
+
+
+#### Two-Factor-Model mit Residualkovarianz
+![Two-Factor-Model mit Residualkovarianz. DF > 0](img/cfa_7.jpg){width=10cm fig-align="left"}
+
+
+### Modellfitevaluation für CFA
+#### Test auf exakten Fit
+Für das CFA-Framework gilt:
+
+$$ n \cdot F_{ML} = T \sim \chi^2(\mathrm{DF}) \Longleftrightarrow \operatorname{Var}(\boldsymbol{y})=\boldsymbol{\Sigma}$$
+Das bedeutet man kann die Nullhypothese $H_0: \; \boldsymbol{S} = \boldsymbol{\Sigma}$ (»exakter Fit«) testen. Problem dabei ist, dass nicht-signifikante Testergebnisse inkonklusiv sind und bei sehr großen $N$ $\boldsymbol{S}$ immer *signifikant* von $\boldsymbol{\Sigma}$ abweicht, obwohl die »Effektstärke« der Nicht-Passung dabei sehr klein sein kann.
+
+
+#### Root Mean Square Error of Approximation (RMSEA)
+Der RMSEA misst operationalisiert den absoluten Fit (kein Vergleichsmodell) indem er den Missfit zur Anzahl der Freiheitgrade und der Stichprobengröße setzt:
+
+$$\operatorname{RMSEA} = \sqrt{\frac{T_M-\mathrm{DF}_M}{\left(n \mathrm{DF}_M\right)}}$$
+
+»Typische« Benchmarks  [@hu1999, marsh2004] sind:
+
+* < .05 “very good fit” or “close fit” 
+* .05 − .08 “good fit” or “fair fit”
+*  .08 − .1 “mediocre fit” or “good fit”
+* .05 − .08 “good fit” or “fair fit”
+* > .10 “poor or unacceptable”
+
+Der RMSEA ist einer der wenigen Indices, von denen man die approximative Verteilung kennt. Daher kann man in auch testen. Also z.B. die Nullhypothese verwerfen, dass $\operatorname{RMSE} > .10$
+
+#### Inkrementelle Fit Indices
+Es liegen eine Vielzahl an inkrementellen Fit-Indices vor. Alle haben Vor- und Nachteile. Zur Ermittlung dieser Indices wird der Fit des vorliegenden Modells mit dem Fit des Baselinemodells oder dem Fit des saturierten Modells verglichen.
+
+![Basline Modell, Beispielmodell, saturiertes Modell](img/baseline.jpg){width=100%}
+Zum Beispiel:
+
+* $\operatorname{TLI}=\frac{T_B-\frac{d f_B}{d f_M} T_M}{T_B}$
+* $\operatorname{CFI}=1-\frac{T_M-d f_M}{T_B-d f_B}$
+
+wobei das Index $_{B}$ für das Baselinemodell steht.
+
+### Worked out Examples: CFA
+```{r}
+#| echo: false
+#| results: hide
+write_sav(lavaan::HolzingerSwineford1939, "data/data_cog_ab.sav")
+```
+
+Angenommen es liegen die folgenden Daten vor, die die kognitiven Fähigkeiten von Schülerinnen und Schülern dreidimensional mit den Faktoren `visuell`, `textlich` und `geschwindigkeit` darstellen sollen. Inwiefern liefern CFA Evidenz für die Annahme der Dreidimensionalität?
+
+```{r}
+library(lavaan)
+library(tidyverse)
+glimpse(HolzingerSwineford1939)
+```
+
+
+
+## Literatur
+<!--
+::: {.callout-warning icon=false}
+## {{< bi question-circle color=#e74c3c >}} 
+:::
+
+::: {.callout-tip icon=false collapse=true}
+## {{< bi lightbulb color=#20c997 >}} Lösungshilfen
+:::
+-->
