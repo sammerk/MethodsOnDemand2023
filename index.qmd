@@ -795,7 +795,7 @@ wobei das Index $_{B}$ für das Baselinemodell steht.
 write_sav(lavaan::HolzingerSwineford1939, "data/data_cog_ab.sav")
 ```
 
-> Angenommen es liegen die folgenden Daten vor, die die kognitiven Fähigkeiten von Schülerinnen und Schülern dreidimensional mit den Faktoren `visuell` (x1, x2, x3), `textlich` (x4, x5, x6) und `geschwindigkeit` (x7, x8, x9) darstellen sollen. Inwiefern liefern CFA Evidenz für die Annahme der Dreidimensionalität?
+> Angenommen es liegen `r xfun::embed_file("data/data_cog_ab.sav", "data_cog_ab.sav", "die folgenden Daten vor")`, die die kognitiven Fähigkeiten von Schülerinnen und Schülern dreidimensional mit den Faktoren `visuell` (x1, x2, x3), `textlich` (x4, x5, x6) und `geschwindigkeit` (x7, x8, x9) darstellen sollen. Inwiefern liefern CFA Evidenz für die Annahme der Dreidimensionalität?
 :::
 
 ::: {.callout-tip icon=false collapse=true}
