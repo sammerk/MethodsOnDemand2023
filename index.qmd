@@ -915,10 +915,17 @@ fit_holz_3f_gr <-
 parameterestimates(fit_holz_3f_gr)
 
 # Manifeste Unterschiede
-HolzingerSwineford1939 |> 
-  mutate(visS = rowSums(x1 + x2 + x3)
-         texS = rowSums(x4 + x5 + x6)
-         speS = rowSums(x7 + x8 + x9))
+HolzingerSwineford1939_Skalenwerte <- 
+  HolzingerSwineford1939 |> 
+  rowwise() |> 
+  mutate(visS = mean(c(x1, x2, x3)),
+         texS = mean(c(x4, x5, x6)),
+         speS = mean(c(x7, x8, x9))) |> 
+  ungroup()
+  
+# cohen d vis
+effsize::cohen.d(visS ~ grade,
+                 data = HolzingerSwineford1939_Skalenwerte)
 ```
 
 
