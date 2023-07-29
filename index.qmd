@@ -786,23 +786,90 @@ Zum Beispiel:
 wobei das Index $_{B}$ für das Baselinemodell steht.
 
 ### Worked out Examples: CFA
+
+::: {.callout-warning icon=false}
+## {{< bi question-circle color=#e74c3c >}}  Holzinger-Swineford Data
 ```{r}
 #| echo: false
 #| results: hide
 write_sav(lavaan::HolzingerSwineford1939, "data/data_cog_ab.sav")
 ```
 
-Angenommen es liegen die folgenden Daten vor, die die kognitiven Fähigkeiten von Schülerinnen und Schülern dreidimensional mit den Faktoren `visuell`, `textlich` und `geschwindigkeit` darstellen sollen. Inwiefern liefern CFA Evidenz für die Annahme der Dreidimensionalität?
+> Angenommen es liegen die folgenden Daten vor, die die kognitiven Fähigkeiten von Schülerinnen und Schülern dreidimensional mit den Faktoren `visuell` (x1, x2, x3), `textlich` (x4, x5, x6) und `geschwindigkeit` (x7, x8, x9) darstellen sollen. Inwiefern liefern CFA Evidenz für die Annahme der Dreidimensionalität?
+:::
+
+::: {.callout-tip icon=false collapse=true}
+## {{< bi lightbulb color=#20c997 >}} Lösung
 
 ```{r}
 library(lavaan)
 library(tidyverse)
 glimpse(HolzingerSwineford1939)
 ```
+:::
 
+::: {.callout-warning icon=false}
+## {{< bi question-circle color=#e74c3c >}}  G-Factor Data by Spearman
+```{r}
+#| echo: false
+#| results: hide
+#| message: false
+write_sav(read_csv("data/G_Factor.csv") |> 
+            select(-starts_with("Residuals")), "data/G_Factor.sav")
+write_sav(read_csv("data/data_GBCS.csv"), "data/data_GBCS.sav")
+```
+
+`r xfun::embed_file("data/G_Factor.sav", "G_Factor.sav", "Der historische Datensatz")` von Karl Pearson enthält Variablen zu Noten und sensory discrimination von Schülerinnen und Schülern.
+
+Die Variablen sind:
+
+* Years - Age of the pupil in years.
+* Months - Age of the pupil in additional months on top of Years (e.g., the first pupil is 10 years and 9  months old).
+* Age - Age of the pupil in the decimal system.
+* Pitch - Score in pitch discrimination test.
+* Light - Score in light discrimination test.
+* Weight - Score in weight discrimination test.
+* Classics - School grade for classic studies.
+* French - School grade for French.
+* English - School grade for English.
+* Mathematics - School grade for mathematics.
+
+
+
+> Testet inwiefern ein einfaktorielles Modell (G-Faktor) den Daten tatsächlich besser entspricht als ein Modell das einen Faktor für die sensorischen Variablen und einen Faktor für die Schulleistungsvariablen enthält.
+:::
+
+::: {.callout-tip icon=false collapse=true}
+## {{< bi lightbulb color=#20c997 >}} Lösung
+:::
+
+::: {.callout-warning icon=false}
+## {{< bi question-circle color=#e74c3c >}} Generic Conspiracist Beliefs
+Die Tendenz zu generischen Verschwörungstheorien wird oft mit der GCB-Skala erfasst. 
+
+> Prüft anhand `r xfun::embed_file("data/data_GBCS.sav", "data_GBCS.sav", "dieser Daten")`, deren Bedeutung in `r xfun::embed_file("data/codebook_GBSC.txt", "diesem Codebook erklärt wird")` inwiefern die in [@brotherton2013] beschriebene Faktorenstruktur repliziert werden kann.
+:::
+
+::: {.callout-tip icon=false collapse=true}
+## {{< bi lightbulb color=#20c997 >}} Lösung
+:::
+
+
+
+## Strukturgleichungsmodellierung (SEM)
+Strukturgleichungsmodelle unterscheiden sich von CFA-Modellen dadurch, dass sie neben dem Messmodell zusätzlich noch ein Strukturmodell annehmen. Die unglaubliche Vielfalt an Modellklassen die SEM erlaubt rührt im wesentlichen von der Tatsache her, dass in SEM Variablen abhängige und unabhängige Variable zugleich sein können. So lassen sich Modelle für
+
+* Gruppenunterschiede
+* Konstruktvalidierung
+* Zeitliche Verläufe
+* Ähnlichketi von zeitlichen Verläufen 
+* u.v.a.m.
+
+spezifizieren.
 
 
 ## Literatur
+
 <!--
 ::: {.callout-warning icon=false}
 ## {{< bi question-circle color=#e74c3c >}} 

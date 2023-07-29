@@ -1,8 +1,11 @@
 # function for team generator
+library(tidyverse)
 
-
-names <- c("Erika", "Florian", "Sarah", "Kirstin", "test", "test2")
-gr_count <- 2
+names <- c("Erika", "Florian", "Sarah", "Kirstin", 
+           "Charlotte", "Elke", "Gabi", "Alex H",
+           "Markus", "Valerie", "Alex A.", "Felix",
+           "Elena", "Karina", "Jochen")
+gr_count <- 7
 gr_size <- floor(length(names)/gr_count)
 names_rand <- sample(names, length(names))
 rest <- length(names) %% gr_count
