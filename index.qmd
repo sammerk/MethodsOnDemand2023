@@ -805,6 +805,21 @@ write_sav(lavaan::HolzingerSwineford1939, "data/data_cog_ab.sav")
 library(lavaan)
 library(tidyverse)
 glimpse(HolzingerSwineford1939)
+
+
+mod_holz_3f <-                  #   =~ bedeutet measured by 
+  "vis =~ x1 + x2 + x3      
+   tex =~ x4 + x5 + x6
+   spe =~ x7 + x8 + x9"
+
+fit_holz_3f <- 
+  cfa(model = mod_holz_3f, 
+    data = HolzingerSwineford1939)
+
+library(semPlot)
+
+semPaths(fit_holz_3f, 
+         what = "path")
 ```
 :::
 
